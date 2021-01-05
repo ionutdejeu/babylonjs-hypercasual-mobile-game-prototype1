@@ -2,6 +2,7 @@ import { GameUtils } from './game-utils';
 import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 import {Player} from './player';
+import {GameMap} from "./game_map";
 
 import '@babylonjs/inspector';
 export class Game {
@@ -15,6 +16,7 @@ export class Game {
     private _sharkAnimationTime = 0;
     private _swim: boolean = false;
     private _player:Player;
+    private _game_map:GameMap;
 
     private _txtCoordinates: { txtX: GUI.TextBlock, txtY: GUI.TextBlock, txtZ: GUI.TextBlock } = null;
 
@@ -53,6 +55,7 @@ export class Game {
         let guiTexture = GameUtils.createGUI();
         
         this._player = new Player(this._scene);
+        this._game_map = new GameMap(this._scene);
 
         // Physics engine also works
         let gravity = new BABYLON.Vector3(0, -0.9, 0);
