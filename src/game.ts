@@ -17,6 +17,7 @@ export class Game {
     private _swim: boolean = false;
     private _player:Player;
     private _game_map:GameMap;
+    private _motion_blur:BABYLON.MotionBlurPostProcess;
 
     private _txtCoordinates: { txtX: GUI.TextBlock, txtY: GUI.TextBlock, txtZ: GUI.TextBlock } = null;
 
@@ -57,9 +58,12 @@ export class Game {
         this._player = new Player(this._scene);
         this._game_map = new GameMap(this._scene);
 
+        this._motion_blur = new BABYLON.MotionBlurPostProcess('mb', this._scene, 1.0,this._camera);
+        this._motion_blur.motionStrength = 2;
+
         // Physics engine also works
-        let gravity = new BABYLON.Vector3(0, -0.9, 0);
-        this._scene.enablePhysics(gravity, new BABYLON.CannonJSPlugin());
+        //let gravity = new BABYLON.Vector3(0, -0.9, 0);
+        //this._scene.enablePhysics(gravity, new BABYLON.CannonJSPlugin());
     }
 
 

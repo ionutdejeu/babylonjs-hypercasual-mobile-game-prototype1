@@ -13,6 +13,9 @@ export class Player {
     private _idleAnim:BABYLON.Animation;
     private _m:BABYLON.Mesh;
     private _frameRate:number = 10;
+    jumpTrajectoryAnimationPosition:BABYLON.Animation;
+    jumpTrajectoryAnimationRotation:BABYLON.Animation;
+    animGroup:BABYLON.AnimationGroup;
 
     constructor(scene:BABYLON.Scene){
         this._m = this.createMesh(scene);
@@ -23,7 +26,10 @@ export class Player {
         
     }
 
-    
+    private createJumpAnimation(){
+        this.jumpTrajectoryAnimationRotation = new BABYLON.Animation("animPos", "position", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        this.jumpTrajectoryAnimationPosition = new BABYLON.Animation("animRot", "rotation", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);	
+    }
 
     public createIdleScaleAnimations():BABYLON.Animation{
         //this._idleAnim = Tween.createTween(this._scene,this._m,"scale.x")
@@ -79,10 +85,7 @@ export class Player {
     
     }
 
-    public createJumpAnimation():BABYLON.Animation{
-        //this._idleAnim = Tween.createTween(this._scene,this._m,"scale.x")
-        return new BABYLON.Animation('player_jump_start_animation', 'scaling.y', 60, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-    }
+    
     public createMesh(scene:BABYLON.Scene):BABYLON.Mesh{
         let player = BABYLON.Mesh.CreateSphere("playerSphere",10,4,scene);
         var pbr = new BABYLON.PBRMetallicRoughnessMaterial("pbr", scene);
