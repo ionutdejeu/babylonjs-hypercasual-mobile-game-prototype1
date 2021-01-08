@@ -3,6 +3,9 @@ import * as BABYLON from '@babylonjs/core';
 import * as GUI from '@babylonjs/gui';
 import {Player} from './player';
 import {GameMap} from "./game_map";
+import {GameEvent,GameEvents} from './game_events'
+import {MainMenu} from './main_menu';
+import {GameSound} from './sound';
 
 import '@babylonjs/inspector';
 export class Game {
@@ -17,6 +20,8 @@ export class Game {
     private _swim: boolean = false;
     private _player:Player;
     private _game_map:GameMap;
+    private _menu:MainMenu;
+    private _sound:GameSound;
     private _motion_blur:BABYLON.MotionBlurPostProcess;
 
     private _txtCoordinates: { txtX: GUI.TextBlock, txtY: GUI.TextBlock, txtZ: GUI.TextBlock } = null;
@@ -60,7 +65,8 @@ export class Game {
 
         this._motion_blur = new BABYLON.MotionBlurPostProcess('mb', this._scene, 1.0,this._camera);
         this._motion_blur.motionStrength = 2;
-
+        this._menu = new MainMenu(this._scene);
+        this._sound = new GameSound(this._scene);
         // Physics engine also works
         //let gravity = new BABYLON.Vector3(0, -0.9, 0);
         //this._scene.enablePhysics(gravity, new BABYLON.CannonJSPlugin());
