@@ -26,6 +26,8 @@ export class GameMapTile{
     create(index:number){
         this._m = BABYLON.Mesh.CreateBox("gametile"+this._index,GameMapTile.tileHeight,this._scene);
         this._ag = new BABYLON.AnimationGroup("gametile"+this._index);
+        this._m.isPickable = true;
+        
         //TODO: to add animations here
         this._material =  new BABYLON.PBRMaterial('mat', this._scene);
         this._material.roughness = 1;
@@ -38,16 +40,36 @@ export class GameMapTile{
         // compute the position of the center tile 
         if(GameMap.getCenterTileIndex()!=this._index){
             //Fade animation
-	        let animTbl = BABYLON.Animation.CreateAndStartAnimation("fadetile"+index, this._m, 'visibility', 30, 90,1.0, 0,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-            console.log(animTbl);
+            let animFade = new BABYLON.Animation("fadeAnimTile"+index,"visibility",30,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
+            let animMove = new BABYLON.Animation("moveTileAnim"+index,"position",30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
+            let animFadeKeys  = []
+            for (let i = 0; i < 29; i++) {
+                animFadeKeys.push({
+                    frame:i,
+                    value:1/i
+                });           
+            }
+            animFadeKeys.push({
+                frame:30,
+                value:0
+            });
+            animFade.setKeys(animFadeKeys);
+            //let animTbl = BABYLON.Animation.CreateAndStartAnimation("fadetile"+index, this._m, 'visibility', 30, 90,1.0, 0,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+            //console.log(animTbl);
+            this._ag.addTargetedAnimation(animFade,this._m);
             let animationDirection = this._pos.subtract(this.getPositionByIndex(GameMap.getCenterTileIndex())).scaleInPlace(3);
-            let animTbl2 = BABYLON.Animation.CreateAndStartAnimation("moveTile"+index, this._m, 'position',30,30,this._pos,animationDirection,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+            //let animTbl2 = BABYLON.Animation.CreateAndStartAnimation("moveTile"+index, this._m, 'position',30,30,this._pos,animationDirection,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+            this._ag.play(true);
         }
         else{
             //let scaleAnimation = BABYLON.Animation.CreateAnimation("centerZoomIn",)
             
         }
         
+        
+    }
+    onTileClikcHandler(){
+
     }
     getPositionByIndex(index:number){
         let x = index%GameMap.witdh*GameMapTile.tileHeight;
