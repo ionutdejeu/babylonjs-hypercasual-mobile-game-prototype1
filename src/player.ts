@@ -5,6 +5,7 @@ import * as MATERIAL from '@babylonjs/materials';
 import * as GUI from '@babylonjs/gui';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { GameMapTile } from './game_map';
 
 
 export class Player { 
@@ -16,6 +17,7 @@ export class Player {
     jumpTrajectoryAnimationPosition:BABYLON.Animation;
     jumpTrajectoryAnimationRotation:BABYLON.Animation;
     animGroup:BABYLON.AnimationGroup;
+    currentTile:GameMapTile;
 
     constructor(scene:BABYLON.Scene){
         this._m = this.createMesh(scene);
@@ -23,6 +25,11 @@ export class Player {
         this._idleAnim = this.createIdleScaleAnimations();
         let move = this.createIdlBobAnimations();
         scene.beginDirectAnimation(this._m, [this._idleAnim,move], 0, 2 * this._frameRate, true);
+        
+    }
+
+    moveToTile(t:GameMapTile){
+        this.currentTile = t;
         
     }
 

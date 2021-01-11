@@ -16,7 +16,7 @@ export class GameMapTile{
     private _scene:BABYLON.Scene;
     private _index:number;
     private _material:BABYLON.PBRMaterial;
-    private _pos:BABYLON.Vector3;
+    position:BABYLON.Vector3;
     constructor(scene:BABYLON.Scene,index:number){
         this._scene = scene;
         this._index = index;
@@ -33,8 +33,8 @@ export class GameMapTile{
         this._material.roughness = 1;
         this._material.metallic = 0;
 
-        this._pos = this.getPositionByIndex(index);
-        this._m.position = this._pos;
+        this.position = this.getPositionByIndex(index);
+        this._m.position = this.position;
         this._m.scaling = new BABYLON.Vector3(1,0.2,1);
        
         // compute the position of the center tile 
@@ -54,19 +54,36 @@ export class GameMapTile{
                 value:0
             });
             animFade.setKeys(animFadeKeys);
-            //let animTbl = BABYLON.Animation.CreateAndStartAnimation("fadetile"+index, this._m, 'visibility', 30, 90,1.0, 0,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-            //console.log(animTbl);
+            
+            let targetPos =  this.position.add(this.position.subtract(this.getPositionByIndex(GameMap.getCenterTileIndex())).scaleInPlace(3));
+            let posAnimationsFrames = [];
+            for (let i = 0; i < 30; i++) {
+                posAnimationsFrames.push({
+                    frame:i,
+                    value:BABYLON.Vector3.Lerp(this.position,targetPos,1/i)
+                }); 
+            }
+            animMove.setKeys(posAnimationsFrames);
+            
             this._ag.addTargetedAnimation(animFade,this._m);
-            let animationDirection = this._pos.subtract(this.getPositionByIndex(GameMap.getCenterTileIndex())).scaleInPlace(3);
-            //let animTbl2 = BABYLON.Animation.CreateAndStartAnimation("moveTile"+index, this._m, 'position',30,30,this._pos,animationDirection,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+            this._ag.addTargetedAnimation(animMove,this._m);
             this._ag.play(true);
         }
         else{
-            //let scaleAnimation = BABYLON.Animation.CreateAnimation("centerZoomIn",)
             
         }
         
-        
+
+        //events 
+        this._m.actionManager = new BABYLON.ActionManager(this._scene);
+        this._m.actionManager.registerAction(
+            new BABYLON.ExecuteCodeAction(
+                BABYLON.ActionManager.OnPickTrigger, function(bjsevt) {
+                    console.log(bjsevt);
+                    let m = bjsevt.source as BABYLON.Mesh;
+                }
+            )
+        )
     }
     onTileClikcHandler(){
 
