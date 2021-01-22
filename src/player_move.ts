@@ -22,6 +22,6 @@ export class PlayerMoveEvent{
         middlePoint=middlePoint.add(BABYLON.Axis.Y.scale(BABYLON.Vector3.Distance(p.currentTile.position,targetTile.position)/2));
         this.trajectory =  BABYLON.Curve3.CreateQuadraticBezier(p.currentTile.position,middlePoint, targetTile.position,10);
         
-        
+               
     }
 }
