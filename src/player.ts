@@ -6,17 +6,22 @@ import * as GUI from '@babylonjs/gui';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GameMapTile } from './game_map';
+import {GameEvents,GameEvent} from './game_events';
+
 
 
 export class Player { 
 
     private _scene:BABYLON.Scene;
     private _idleAnim:BABYLON.Animation;
+    private _idleAnimGroup:BABYLON.AnimationGroup;
     private _m:BABYLON.Mesh;
     private _frameRate:number = 10;
     jumpTrajectoryAnimationPosition:BABYLON.Animation;
     jumpTrajectoryAnimationRotation:BABYLON.Animation;
-    animGroup:BABYLON.AnimationGroup;
+    jumpStartAnimation:BABYLON.Animation;
+    jumpLandingAnimation:BABYLON.Animation;
+    jumpAnimGroup:BABYLON.AnimationGroup;
     currentTile:GameMapTile;
 
     constructor(scene:BABYLON.Scene){
@@ -24,19 +29,74 @@ export class Player {
         this._scene = scene;
         this._idleAnim = this.createIdleScaleAnimations();
         let move = this.createIdlBobAnimations();
-        scene.beginDirectAnimation(this._m, [this._idleAnim,move], 0, 2 * this._frameRate, true);
+        //scene.beginDirectAnimation(this._m, [this._idleAnim,move], 0, 2 * this._frameRate, true);
+        this.createJumpAnimation();
+        GameEvents.OnMapTileSelectedObservable.add((ge:GameEvent)=>{
+            this.createJumpCurve(ge.tile);
+            this.updateAnimationKeys(ge.tile);
+            
+
+        });
+        GameEvents.OnSpawnPlayerMapObservable.add((ge:GameEvent)=>{
+            this.moveToTile(ge.tile);
+        });
+        
+        
         
     }
 
     moveToTile(t:GameMapTile){
         this.currentTile = t;
+    }
+    computPath(target:GameMapTile):BABYLON.Curve3{
+        let middlePoint = BABYLON.Vector3.Lerp(this.currentTile.position,target.position,0.5);
+        middlePoint=middlePoint.add(BABYLON.Axis.Y.scale(BABYLON.Vector3.Distance(this.currentTile.position,target.position)));
+        return BABYLON.Curve3.CreateQuadraticBezier(this.currentTile.position,middlePoint, target.position,10);
+    }
+    createJumpCurve(target:GameMapTile){
+        let meshOfCurve = BABYLON.Mesh.CreateLines("playerMoveToTile_to_", this.computPath(target).getPoints(), this._scene);
+        meshOfCurve.color = new BABYLON.Color3(1, 1, 0.5);
+        meshOfCurve.edgesWidth = 1123;
         
     }
-
+    private updateAnimationKeys(target:GameMapTile){
+        let curve = this.computPath(target);
+        let posKeys = []
+        let rotationKeys = []
+        let path3d = new BABYLON.Path3D(curve.getPoints());
+        for(let p = 0; p < curve.getPoints().length; p++) {
+            posKeys.push({
+                frame: p,
+                value: curve.getPoints()[p]
+            });
+    
+            rotationKeys.push({
+                frame: p,
+                value: BABYLON.Vector3.RotationFromAxis(path3d.getNormals()[p], path3d.getBinormals()[p], path3d.getTangents()[p])
+            });
+        }
+        this.jumpTrajectoryAnimationPosition.setKeys(posKeys);
+        this.jumpTrajectoryAnimationRotation.setKeys(rotationKeys);
+        if(this.jumpAnimGroup!=undefined){
+            this.jumpAnimGroup.stop();
+            this.jumpAnimGroup.dispose();
+            this.jumpAnimGroup = undefined;
+        }
+        this.jumpAnimGroup = new BABYLON.AnimationGroup("PlayerJump");
+        this.jumpAnimGroup.addTargetedAnimation(this.jumpTrajectoryAnimationPosition,this._m);
+        this.jumpAnimGroup.addTargetedAnimation(this.jumpTrajectoryAnimationRotation,this._m);
+        this.jumpAnimGroup.onAnimationGroupEndObservable.add(()=>{
+            this._m.position = target.position;
+            this.moveToTile(target);
+        });
+        this.jumpAnimGroup.play();
+    }
     private createJumpAnimation(){
         this.jumpTrajectoryAnimationRotation = new BABYLON.Animation("animPos", "position", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-        this.jumpTrajectoryAnimationPosition = new BABYLON.Animation("animRot", "rotation", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);	
+        this.jumpTrajectoryAnimationPosition = new BABYLON.Animation("animRot", "rotation", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    
     }
+    
 
     public createIdleScaleAnimations():BABYLON.Animation{
         //this._idleAnim = Tween.createTween(this._scene,this._m,"scale.x")

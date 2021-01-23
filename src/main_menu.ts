@@ -91,11 +91,11 @@ export class MainMenu {
     toggleSound(){
         this.playingBgSound = !this.playingBgSound;
         if(this.playingBgSound){
-            MainMenu.onResumeSoundObservable.notifyObservers(new GameEvent(this._scene,null,null));
+            MainMenu.onResumeSoundObservable.notifyObservers(new GameEvent(this._scene,null,null,null));
             this.menuOptionsBtn.textBlock.text = "Turn music off";
         }
         else{
-            MainMenu.onMuteSoundObservable.notifyObservers(new GameEvent(this._scene,null,null));
+            MainMenu.onMuteSoundObservable.notifyObservers(new GameEvent(this._scene,null,null,null));
             this.menuOptionsBtn.textBlock.text = "Turn music on";
 
         }
@@ -108,17 +108,17 @@ export class MainMenu {
     }
     playGame(){
         this.toggleMenu();
-        GameEvents.OnGameResumedObservable.notifyObservers(new GameEvent(this._scene,null,null))
+        GameEvents.OnGameResumedObservable.notifyObservers(new GameEvent(this._scene,null,null,null))
         this.menuButtonPlay.textBlock.text = "Resume";
     }
     restartGame(){
         this.toggleMenu()
-        GameEvents.OnGameRestartObservable.notifyObservers(new GameEvent(this._scene,null,null))
+        GameEvents.OnGameRestartObservable.notifyObservers(new GameEvent(this._scene,null,null,null))
     }
 
     showMenu(){
         this.toggleMenu();
-        GameEvents.OnGamePausedObservable.notifyObservers(new GameEvent(this._scene,null,null))
+        GameEvents.OnGamePausedObservable.notifyObservers(new GameEvent(this._scene,null,null,null))
     }
 
     

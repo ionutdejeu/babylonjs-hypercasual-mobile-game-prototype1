@@ -4,6 +4,7 @@ import * as BABYLON from '@babylonjs/core';
 import {Tween} from './tween';
 import * as MATERIAL from '@babylonjs/materials';
 import * as GUI from '@babylonjs/gui';
+import {GameEvents,GameEvent} from './game_events';
 
 export class GameMapTile{
     
@@ -17,10 +18,12 @@ export class GameMapTile{
     private _index:number;
     private _material:BABYLON.PBRMaterial;
     position:BABYLON.Vector3;
+
     constructor(scene:BABYLON.Scene,index:number){
         this._scene = scene;
         this._index = index;
         this.create(index);
+         
         
     }
     create(index:number){
@@ -67,26 +70,26 @@ export class GameMapTile{
             
             this._ag.addTargetedAnimation(animFade,this._m);
             this._ag.addTargetedAnimation(animMove,this._m);
-            this._ag.play(true);
         }
         else{
             
         }
         
-
         //events 
         this._m.actionManager = new BABYLON.ActionManager(this._scene);
         this._m.actionManager.registerAction(
             new BABYLON.ExecuteCodeAction(
-                BABYLON.ActionManager.OnPickTrigger, function(bjsevt) {
-                    console.log(bjsevt);
-                    let m = bjsevt.source as BABYLON.Mesh;
+                BABYLON.ActionManager.OnPickTrigger, (objsevt)=>{
+                    console.log(objsevt);
+                    let m = objsevt.source as BABYLON.Mesh;
+                    let ge  = new GameEvent(this._scene,null,null,this);
+                    GameEvents.OnMapTileSelectedObservable.notifyObservers(ge);
                 }
             )
         )
     }
     onTileClikcHandler(){
-
+        
     }
     getPositionByIndex(index:number){
         let x = index%GameMap.witdh*GameMapTile.tileHeight;
@@ -116,6 +119,8 @@ export class GameMap{
                 this.tiles.push(t);
             }
         }
+        let ge  = new GameEvent(this._scene,null,null,this.tiles[4]);
+        GameEvents.OnSpawnPlayerMapObservable.notifyObservers(ge);
     }
     
 } 
