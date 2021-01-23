@@ -30,6 +30,8 @@ export class Player {
         this._idleAnim = this.createIdleScaleAnimations();
         let move = this.createIdlBobAnimations();
         //scene.beginDirectAnimation(this._m, [this._idleAnim,move], 0, 2 * this._frameRate, true);
+        
+
         this.createJumpAnimation();
         GameEvents.OnMapTileSelectedObservable.add((ge:GameEvent)=>{
             this.createJumpCurve(ge.tile);
@@ -39,6 +41,7 @@ export class Player {
         });
         GameEvents.OnSpawnPlayerMapObservable.add((ge:GameEvent)=>{
             this.moveToTile(ge.tile);
+            this._m.position = ge.tile.position;
         });
         
         
@@ -75,16 +78,21 @@ export class Player {
                 value: BABYLON.Vector3.RotationFromAxis(path3d.getNormals()[p], path3d.getBinormals()[p], path3d.getTangents()[p])
             });
         }
-        this.jumpTrajectoryAnimationPosition.setKeys(posKeys);
-        this.jumpTrajectoryAnimationRotation.setKeys(rotationKeys);
+        let animPos = new BABYLON.Animation("animPos", "position", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        let animRot = new BABYLON.Animation("animRot", "rotation", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        
+        
+        animPos.setKeys(posKeys);
+        animRot.setKeys(rotationKeys);
         if(this.jumpAnimGroup!=undefined){
             this.jumpAnimGroup.stop();
             this.jumpAnimGroup.dispose();
             this.jumpAnimGroup = undefined;
         }
         this.jumpAnimGroup = new BABYLON.AnimationGroup("PlayerJump");
-        this.jumpAnimGroup.addTargetedAnimation(this.jumpTrajectoryAnimationPosition,this._m);
-        this.jumpAnimGroup.addTargetedAnimation(this.jumpTrajectoryAnimationRotation,this._m);
+        this.jumpAnimGroup.addTargetedAnimation(animPos,this._m);
+        this.jumpAnimGroup.addTargetedAnimation(animRot,this._m);
+
         this.jumpAnimGroup.onAnimationGroupEndObservable.add(()=>{
             this._m.position = target.position;
             this.moveToTile(target);
@@ -92,8 +100,8 @@ export class Player {
         this.jumpAnimGroup.play();
     }
     private createJumpAnimation(){
-        this.jumpTrajectoryAnimationRotation = new BABYLON.Animation("animPos", "position", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-        this.jumpTrajectoryAnimationPosition = new BABYLON.Animation("animRot", "rotation", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        //this.jumpTrajectoryAnimationRotation = new BABYLON.Animation("animPos", "position", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        //this.jumpTrajectoryAnimationPosition = new BABYLON.Animation("animRot", "rotation", 10, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
     
     }
     
@@ -160,6 +168,14 @@ export class Player {
         pbr.metallic = 0;
         pbr.roughness = 1.0;
         player.material = pbr;
+
+        var trail = new BABYLON.TrailMesh('orb trail', player, scene, 2, 20, true);
+        var sourceMat = new BABYLON.StandardMaterial('sourceMat', scene);
+        var color = new BABYLON.Color3(1.0, 0.766, 0.336);
+        sourceMat.emissiveColor = sourceMat.diffuseColor = color;
+        sourceMat.specularColor = BABYLON.Color3.Black();
+        trail.material = sourceMat;
+
         return player;
     }
 
