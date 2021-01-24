@@ -19,7 +19,7 @@ export class GameSound {
         this.match_sound = new BABYLON.Sound("Violons", "./assets/texture/match.wav", scene, 
                 ()=>{
                     this.loadCompleted=true;
-                    GameEvents.OnMatchFoundObservable.add((evt:GameEvent)=>{this.playMatchFoundSound()});
+                    //GameEvents.OnMatchFoundObservable.add((evt:GameEvent)=>{this.playMatchFoundSound()});
                 }
         );
     }

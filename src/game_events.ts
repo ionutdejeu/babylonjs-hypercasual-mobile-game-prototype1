@@ -18,14 +18,16 @@ export class GameEvent{
     }
 }
 export class GameEvents {
-    public static OnMapTileSelectedObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
     public static OnSpawnPlayerMapObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
     public static OnPlayerBeginMovementObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
     public static OnPlayerEndMovementObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
-
-    public static OnMatchFoundObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
     public static OnGamePausedObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
     public static OnGameResumedObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
     public static OnGameRestartObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
     public static OnLevelCompleted:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
 } 
+export class MapEvents {
+    public static OnTileSelectedObservable:BABYLON.Observable<GameMapTile> = new BABYLON.Observable<GameMapTile>();
+    public static OnTileEnabledObservable:BABYLON.Observable<GameEvent> = new BABYLON.Observable<GameEvent>();
+    
+}

@@ -4,7 +4,10 @@ import * as BABYLON from '@babylonjs/core';
 import {Tween} from './tween';
 import * as MATERIAL from '@babylonjs/materials';
 import * as GUI from '@babylonjs/gui';
-import {GameEvents,GameEvent} from './game_events';
+import {GameEvents,GameEvent,MapEvents} from './game_events';
+
+
+
 
 export class GameMapTile{
     
@@ -18,13 +21,14 @@ export class GameMapTile{
     private _index:number;
     private _material:BABYLON.PBRMaterial;
     position:BABYLON.Vector3;
+    private _isEnabled:boolean = true;
 
     constructor(scene:BABYLON.Scene,index:number){
         this._scene = scene;
         this._index = index;
         this.create(index);
-         
         
+                 
     }
     create(index:number){
         this._m = BABYLON.Mesh.CreateBox("gametile"+this._index,GameMapTile.tileHeight,this._scene);
@@ -80,13 +84,21 @@ export class GameMapTile{
         this._m.actionManager.registerAction(
             new BABYLON.ExecuteCodeAction(
                 BABYLON.ActionManager.OnPickTrigger, (objsevt)=>{
-                    console.log(objsevt);
-                    let m = objsevt.source as BABYLON.Mesh;
-                    let ge  = new GameEvent(this._scene,null,null,this);
-                    GameEvents.OnMapTileSelectedObservable.notifyObservers(ge);
+                    if(this._isEnabled){
+                        let m = objsevt.source as BABYLON.Mesh;
+                        MapEvents.OnTileSelectedObservable.notifyObservers(this);
+                    }
                 }
             )
         )
+        GameEvents.OnPlayerBeginMovementObservable.add((ge:GameEvent)=>{
+            this._isEnabled = false;
+        });
+        GameEvents.OnPlayerBeginMovementObservable.add((ge:GameEvent)=>{
+            this._isEnabled = true;
+        });
+
+      
     }
     onTileClikcHandler(){
         
@@ -121,6 +133,7 @@ export class GameMap{
         }
         let ge  = new GameEvent(this._scene,null,null,this.tiles[4]);
         GameEvents.OnSpawnPlayerMapObservable.notifyObservers(ge);
+        
     }
     
 } 

@@ -6,7 +6,7 @@ import * as GUI from '@babylonjs/gui';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { GameMapTile } from './game_map';
-import {GameEvents,GameEvent} from './game_events';
+import {GameEvents,GameEvent,MapEvents} from './game_events';
 
 
 
@@ -33,11 +33,9 @@ export class Player {
         
 
         this.createJumpAnimation();
-        GameEvents.OnMapTileSelectedObservable.add((ge:GameEvent)=>{
-            this.createJumpCurve(ge.tile);
-            this.updateAnimationKeys(ge.tile);
-            
-
+        MapEvents.OnTileSelectedObservable.add((t:GameMapTile)=>{
+            this.createJumpCurve(t);
+            this.updateAnimationKeys(t);
         });
         GameEvents.OnSpawnPlayerMapObservable.add((ge:GameEvent)=>{
             this.moveToTile(ge.tile);
@@ -92,10 +90,15 @@ export class Player {
         this.jumpAnimGroup = new BABYLON.AnimationGroup("PlayerJump");
         this.jumpAnimGroup.addTargetedAnimation(animPos,this._m);
         this.jumpAnimGroup.addTargetedAnimation(animRot,this._m);
-
+        this.jumpAnimGroup.onAnimationGroupPlayObservable.add(()=>{
+            let ge = new GameEvent(this._scene,null,this._m,null);
+            GameEvents.OnPlayerBeginMovementObservable.notifyObservers(ge);
+        });
         this.jumpAnimGroup.onAnimationGroupEndObservable.add(()=>{
             this._m.position = target.position;
             this.moveToTile(target);
+            let ge = new GameEvent(this._scene,null,this._m,null);
+            GameEvents.OnPlayerEndMovementObservable.notifyObservers(ge);
         });
         this.jumpAnimGroup.play();
     }
