@@ -91,14 +91,16 @@ export class Player {
         this.jumpAnimGroup.addTargetedAnimation(animPos,this._m);
         this.jumpAnimGroup.addTargetedAnimation(animRot,this._m);
         this.jumpAnimGroup.onAnimationGroupPlayObservable.add(()=>{
-            let ge = new GameEvent(this._scene,null,this._m,null);
+            let ge = new GameEvent(this._scene,null,this._m,this.currentTile);
             GameEvents.OnPlayerBeginMovementObservable.notifyObservers(ge);
         });
         this.jumpAnimGroup.onAnimationGroupEndObservable.add(()=>{
             this._m.position = target.position;
+            this.currentTile.beginFadeAnimation();
             this.moveToTile(target);
             let ge = new GameEvent(this._scene,null,this._m,null);
             GameEvents.OnPlayerEndMovementObservable.notifyObservers(ge);
+            
         });
         this.jumpAnimGroup.play();
     }
