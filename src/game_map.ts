@@ -6,6 +6,7 @@ import * as MATERIAL from '@babylonjs/materials';
 import * as GUI from '@babylonjs/gui';
 import {GameEvents,GameEvent,MapEvents} from './game_events';
 import { GameSound } from './sound';
+import { TiledBoxBuilder } from '@babylonjs/core';
 
 
 
@@ -26,11 +27,13 @@ export class GameMapTile{
     isActive:boolean=true;
     private _isEnabled:boolean = true;
 
+    public OnTileAnimationCompletedObservable:BABYLON.Observable<GameMapTile> = new BABYLON.Observable<GameMapTile>();
+
+
     constructor(scene:BABYLON.Scene,index:number){
         this._scene = scene;
         this._index = index;
         this.create(index);
-        
                  
     }
     create(index:number){
@@ -45,7 +48,7 @@ export class GameMapTile{
 
         this.position = this.getPositionByIndex(index);
         this._m.position = this.position;
-        this._m.scaling = new BABYLON.Vector3(1,0.2,1);
+        this._m.scaling = new BABYLON.Vector3(1,0.1,1);
        
 
         //Fade animation
@@ -64,12 +67,12 @@ export class GameMapTile{
         });
         animFade.setKeys(animFadeKeys);
         
-        let targetPos =  this.position.add(this.position.subtract(this.getPositionByIndex(GameMap.getCenterTileIndex())).scaleInPlace(3));
+        let targetPos =  this.position.add(this.position.subtract(this.getPositionByIndex(GameMap.getCenterTileIndex())).scaleInPlace(1.5));
         let posAnimationsFrames = [];
         for (let i = 0; i < 30; i++) {
             posAnimationsFrames.push({
                 frame:i,
-                value:BABYLON.Vector3.Lerp(this.position,targetPos,1/i)
+                value:BABYLON.Vector3.Lerp(targetPos,this.position,1/i)
             }); 
         }
         animMove.setKeys(posAnimationsFrames);
@@ -78,7 +81,7 @@ export class GameMapTile{
         this._ag.addTargetedAnimation(animMove,this._m);
         this._ag.onAnimationEndObservable.add(()=>{
             this._m.isVisible = this.isActive = false;
-            
+            this.OnTileAnimationCompletedObservable.notifyObservers(this);
         });
 
         // compute the position of the center tile 
@@ -112,7 +115,7 @@ export class GameMapTile{
     }
 
     levelRefreshAnimation(){
-        let animScale = new BABYLON.Animation("animationScaleFinalTile","scale",30,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
+        let animScale = new BABYLON.Animation("animationScaleFinalTile","scaling",30,BABYLON.Animation.ANIMATIONTYPE_VECTOR3,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
         let animMove = new BABYLON.Animation("animationMoveFinalTile","position",30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
         // 2 elements 
         // 1. Translate to the center of the screen 
@@ -121,11 +124,11 @@ export class GameMapTile{
         
         animScaleKeys.push({
             frame:0,
-            value:1
+            value:new BABYLON.Vector3(1, 0.1, 1)
         });           
         animScaleKeys.push({
                 frame:60,//2 seconds
-                value:3
+                value:new BABYLON.Vector3(3, 0.1, 3)
         });
         animScale.setKeys(animScaleKeys);
         
@@ -143,6 +146,9 @@ export class GameMapTile{
         let endLevelAnimGroup = new BABYLON.AnimationGroup("tileEndGameAnimation"+this._index);
         endLevelAnimGroup.addTargetedAnimation(animMove,this._m);
         endLevelAnimGroup.addTargetedAnimation(animScale,this._m);
+        endLevelAnimGroup.onAnimationEndObservable.add((evt:BABYLON.TargetedAnimation)=>{
+            
+        });
         endLevelAnimGroup.play();
     }
     beginFadeAnimation(){
@@ -174,11 +180,14 @@ export class GameMap{
             for(let j = 0;j<GameMap.height;j++){
                 let t = new GameMapTile(scene,i*GameMap.height+j);
                 this.tiles.push(t);
+                t.OnTileAnimationCompletedObservable.add((tile:GameMapTile)=>{
+                    this.checkLastTile();
+                });
             }
         }
         let ge  = new GameEvent(this._scene,null,null,this.tiles[4]);
         GameEvents.OnSpawnPlayerMapObservable.notifyObservers(ge);
-        GameEvents.OnPlayerEndMovementObservable.add((evt:GameEvent)=>{this.checkLastTile()});
+        //GameEvents.OnPlayerEndMovementObservable.add((evt:GameEvent)=>{this.checkLastTile()});
     }
 
     checkLastTile(){
@@ -191,11 +200,12 @@ export class GameMap{
                 tileCount++;
             }
         }
+        console.log(tileCount);
         if(tileCount == 1){
             //end game 
+            console.log(foundActiveTile);
             foundActiveTile.levelRefreshAnimation();
         }
-
     }
-    
-} 
+}
+
