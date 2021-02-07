@@ -30,7 +30,10 @@ export class GameMapTile{
     public OnTileAnimationCompletedObservable:BABYLON.Observable<GameMapTile> = new BABYLON.Observable<GameMapTile>();
 
 
-    constructor(scene:BABYLON.Scene,index:number){
+    constructor(scene:BABYLON.Scene,
+        index:number,
+        OnCloseAnimationComplete:(tile:GameMapTile)=>void|null
+        ){
         this._scene = scene;
         this._index = index;
         this.create(index);
@@ -114,7 +117,7 @@ export class GameMapTile{
       
     }
 
-    levelRefreshAnimation(){
+    levelRefreshAnimation(animCompleteCallback:()=>void){
         let animScale = new BABYLON.Animation("animationScaleFinalTile","scaling",30,BABYLON.Animation.ANIMATIONTYPE_VECTOR3,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
         let animMove = new BABYLON.Animation("animationMoveFinalTile","position",30, BABYLON.Animation.ANIMATIONTYPE_VECTOR3, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE)
         // 2 elements 
@@ -147,7 +150,7 @@ export class GameMapTile{
         endLevelAnimGroup.addTargetedAnimation(animMove,this._m);
         endLevelAnimGroup.addTargetedAnimation(animScale,this._m);
         endLevelAnimGroup.onAnimationEndObservable.add((evt:BABYLON.TargetedAnimation)=>{
-            
+            animCompleteCallback();
         });
         endLevelAnimGroup.play();
     }
@@ -178,7 +181,7 @@ export class GameMap{
         this._scene = scene;
         for(let i = 0;i<GameMap.witdh;i++){
             for(let j = 0;j<GameMap.height;j++){
-                let t = new GameMapTile(scene,i*GameMap.height+j);
+                let t = new GameMapTile(scene,i*GameMap.height+j,this.OnTileAnimationCompleted);
                 this.tiles.push(t);
                 t.OnTileAnimationCompletedObservable.add((tile:GameMapTile)=>{
                     this.checkLastTile();
@@ -190,6 +193,9 @@ export class GameMap{
         //GameEvents.OnPlayerEndMovementObservable.add((evt:GameEvent)=>{this.checkLastTile()});
     }
 
+    OnTileAnimationCompleted(t:GameMapTile){
+        this.checkLastTile()
+    }
     checkLastTile(){
         let foundActiveTile:GameMapTile = null;
         let tileCount = 0;
@@ -204,8 +210,15 @@ export class GameMap{
         if(tileCount == 1){
             //end game 
             console.log(foundActiveTile);
-            foundActiveTile.levelRefreshAnimation();
+            foundActiveTile.levelRefreshAnimation(this.OnAnimationCompletedCallbackRegenerateMapTiles);
         }
+    }
+
+    /**
+     * Once the animatsion are completed then regenerate map's tiles 
+     */
+    OnAnimationCompletedCallbackRegenerateMapTiles(){
+        
     }
 }
 
